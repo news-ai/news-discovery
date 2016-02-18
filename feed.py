@@ -1,9 +1,10 @@
 import feedparser
 import context
 
-def get_bbc_world_links(token):
+
+def get_bbc_world_links(url, token):
     ret = []
-    d = feedparser.parse('http://feeds.bbci.co.uk/news/world/rss.xml')
+    d = feedparser.parse(url)
     for entry in d['entries']:
         ret.append(entry['id'])
 
@@ -13,4 +14,5 @@ def get_bbc_world_links(token):
             print r
 
 token = context.get_login_token()
-get_bbc_world_links(token)
+url = 'http://feeds.bbci.co.uk/news/rss.xml'
+get_bbc_world_links(url, token)
