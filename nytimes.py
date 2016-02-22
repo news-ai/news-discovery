@@ -3,7 +3,8 @@ import requests
 import json
 import context
 
-newswire = 'http://api.nytimes.com/svc/news/v3/content/all/all.json?api-key=' + os.environ.get('NYTIMES')
+newswire = 'http://api.nytimes.com/svc/news/v3/content/all/all.json?api-key=' + \
+    os.environ.get('NYTIMES')
 data = requests.get(newswire).json()
 
 token = context.get_login_token()

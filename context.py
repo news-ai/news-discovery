@@ -2,7 +2,11 @@ import requests
 import json
 import os
 
+from newspaper import Article
+
+
 base_url = 'https://context.newsai.org/api'
+
 
 def get_login_token():
     headers = {
@@ -20,6 +24,28 @@ def get_login_token():
     return token
 
 
+def entity_extraction(keywords, text):
+    return []
+
+
+def read_article(url):
+    article = Article(url)
+    article.download()
+    article.parse()
+    article.nlp()
+
+    data = {}
+    data['url'] = url
+    data['name'] = article.title  # Get Title
+    data['created_at'] = str(article.publish_date)
+    data['header_image'] = article.top_image
+    data['basic_summary'] = article.summary
+
+    # data['keywords'] = article.keywords
+    # entity_extraction(article.keywords, article.text)
+    return data
+
+
 def post_article(url, token):
     if token is None:
         print 'Missing token'
@@ -30,9 +56,7 @@ def post_article(url, token):
         "authorization": "Bearer " + token
     }
 
-    payload = {
-        "url": url,
-    }
+    payload = read_article(url)
 
     r = requests.post(base_url + '/articles/',
                       headers=headers, data=json.dumps(payload), verify=False)
