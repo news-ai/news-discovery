@@ -37,6 +37,24 @@ def url_validate(url):
     )
 
 
+def read_article_without_author(url):
+    article = Article(url)
+    article.download()
+    article.parse()
+    article.nlp()
+
+    url, publisher = url_validate(url)
+
+    data = {}
+    data['url'] = url
+    data['name'] = article.title  # Get Title
+    if article.publish_date:
+        data['created_at'] = str(article.publish_date)
+    data['header_image'] = article.top_image
+    data['basic_summary'] = article.summary
+    return data
+
+
 def read_article(url, token):
     article = Article(url)
     article.download()
@@ -70,6 +88,23 @@ def post_article(url, token):
     }
 
     payload = read_article(url, token)
+
+    r = requests.post(base_url + '/articles/',
+                      headers=headers, data=json.dumps(payload), verify=False)
+    return r
+
+
+def post_article_no_author(url, article, token):
+    if token is None:
+        print 'Missing token'
+        return
+    headers = {
+        "content-type": "application/json",
+        "accept": "application/json",
+        "authorization": "Bearer " + token
+    }
+
+    payload = article
 
     r = requests.post(base_url + '/articles/',
                       headers=headers, data=json.dumps(payload), verify=False)
@@ -143,6 +178,7 @@ def post_publisher(url, publisher, name, token):
                       headers=headers, data=json.dumps(payload), verify=False)
     return r
 
+
 def get_publisher(token):
     if token is None:
         print 'Missing token'
@@ -157,4 +193,3 @@ def get_publisher(token):
     r = requests.get(base_url + '/publisherfeeds/?9', headers=headers,
             verify=False)
     return r
-

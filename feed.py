@@ -1,3 +1,4 @@
+import redis
 from celery import Celery
 from celery import chain
 import celeryconfig
@@ -6,6 +7,8 @@ import context
 
 app = Celery('feed', broker='redis://localhost:6379/0')
 app.config_from_object(celeryconfig)
+
+r = redis.StrictRedis()
 
 
 def test_rss_feed(url, token):
@@ -25,6 +28,28 @@ def get_rss_results(urls):
             else:
                 ret.append(entry.get(url[1]))
     return ret
+
+
+def save_urls_to_redis(urls):
+    r.set('pending_urls', urls)
+    return urls
+
+
+def save_articles_to_redis(urls):
+    for url in urls:
+        article = context.read_article_without_author(url)
+        r.set(url, article)
+
+
+def get_articles_from_redis(token):
+    urls = r.get('pending_urls')
+    for url in urls:
+        article = r.get(url)
+        res = context.post_article_no_author(url, article, token)
+        if res.status_code == 500:
+            print res.text
+            print url
+        return True
 
 
 @app.task
