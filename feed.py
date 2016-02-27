@@ -9,6 +9,7 @@ app = Celery('feed', broker='redis://localhost:6379/0')
 app.config_from_object(celeryconfig)
 
 r = redis.StrictRedis()
+# TODO: delete old articles from redis after posting
 
 
 def test_rss_feed(url, token):
@@ -17,31 +18,10 @@ def test_rss_feed(url, token):
         print entry
 
 
+# 15 min
+# add batch processing
 @app.task
-def get_rss_results(urls):
-    ret = []
-    for url in urls:
-        d = feedparser.parse(url[0])
-        for entry in d.get('entries'):
-            if len(url) == 1:
-                ret.append(entry.get('id'))
-            else:
-                ret.append(entry.get(url[1]))
-    return ret
-
-
-def save_urls_to_redis(urls):
-    r.set('pending_urls', urls)
-    return urls
-
-
-def save_articles_to_redis(urls):
-    for url in urls:
-        article = context.read_article_without_author(url)
-        r.set(url, article)
-
-
-def get_articles_from_redis(token):
+def post_articles_from_redis(token):
     urls = r.get('pending_urls')
     for url in urls:
         article = r.get(url)
@@ -52,36 +32,32 @@ def get_articles_from_redis(token):
         return True
 
 
+# FIX TO POST BY BATCH
 @app.task
 def post_links(rss_results, token):
     for link in rss_results:
-        r = context.post_article(link, token)
-        if r.status_code == 500:
-            print r.text
+        res = context.post_article(link, token)
+        if res.status_code == 500:
+            print res.text
             print link
     return True
 
 
+# 15 min
 @app.task
-def get_all_feeds(token):
+def save_all_publisher_feeds_to_redis(token):
     feed_urls = []
-    r = context.get_publisher(token).json()
-    for publisher in r.get('results'):
+    res = context.get_publisher(token).json()
+    for publisher in res.get('results'):
         if len(publisher.get('tags')) > 0:
             feed_urls.append([publisher['feed_url'], publisher['tags']])
         else:
             feed_urls.append([publisher['feed_url']])
-    return feed_urls
-
-
-@app.task
-def post_all_feeds():
-    token = context.get_login_token()
-    # urls = get_all_feeds.delay(token)
-    chain = get_all_feeds.s(token) | get_rss_results.s() | post_links.s(token)
-    chain()
+    r.set('publisher_feeds', feed_urls)
     return True
 
 
 if __name__ == "__main__":
-    post_all_feeds.delay()
+    token = context.get_login_token()
+    post_articles_from_redis.delay(token)
+    save_all_publisher_feeds_to_redis.delay(token)
