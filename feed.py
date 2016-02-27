@@ -1,4 +1,5 @@
 from celery import Celery
+from celery import chain
 import celeryconfig
 import feedparser
 import context
@@ -14,11 +15,15 @@ def test_rss_feed(url, token):
 
 
 @app.task
-def get_rss_results(url, tag='id'):
+def get_rss_results(urls):
     ret = []
-    d = feedparser.parse(url)
-    for entry in d.get('entries'):
-        ret.append(entry.get(tag))
+    for url in urls:
+        d = feedparser.parse(url[0])
+        for entry in d.get('entries'):
+            if len(url) == 1:
+                ret.append(entry.get('id'))
+            else:
+                ret.append(entry.get(url[1]))
     return ret
 
 
@@ -26,7 +31,6 @@ def get_rss_results(url, tag='id'):
 def post_links(rss_results, token):
     for link in rss_results:
         r = context.post_article(link, token)
-        print 'yee'
         if r.status_code == 500:
             print r.text
             print link
@@ -48,17 +52,9 @@ def get_all_feeds(token):
 @app.task
 def post_all_feeds():
     token = context.get_login_token()
-    urls = get_all_feeds.AsyncResult(token)
-
-    if urls.ready():
-        for url in urls:
-            if len(url) > 1:
-                rss = get_rss_results.AsyncResult(url, tag=url[1])
-            else:
-                rss = get_rss_results.AsyncResult(url)
-
-            if rss.ready():
-                post_links(rss, token)
+    # urls = get_all_feeds.delay(token)
+    chain = get_all_feeds.s(token) | get_rss_results.s() | post_links.s(token)
+    chain()
     return True
 
 
