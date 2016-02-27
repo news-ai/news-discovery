@@ -142,3 +142,19 @@ def post_publisher(url, publisher, name, token):
     r = requests.post(base_url + '/publishers/',
                       headers=headers, data=json.dumps(payload), verify=False)
     return r
+
+def get_publisher(token):
+    if token is None:
+        print 'Missing token'
+        return
+    
+    headers = {
+        "content-type": "application/json",
+        "accept": "application/json",
+        "authorization": "Bearer " + token
+    }
+
+    r = requests.get(base_url + '/publisherfeeds/?9', headers=headers,
+            verify=False)
+    return r
+
