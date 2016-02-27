@@ -6,25 +6,34 @@ import context
 app = Celery('feed', broker='redis://localhost:6379/0')
 app.config_from_object(celeryconfig)
 
+
 def test_rss_feed(url, token):
     d = feedparser.parse(url)
     for entry in d.get('entries'):
         print entry
 
-def get_rss_links(url, token, tag='id'):
+
+@app.task
+def get_rss_results(url, tag='id'):
     ret = []
     d = feedparser.parse(url)
     for entry in d.get('entries'):
         ret.append(entry.get(tag))
+    return ret
 
-    if len(ret) > 0:
-        for link in ret:
-            r = context.post_article(link, token)
-            if r.status_code == 500:
-                print r.text
-                print link
+
+@app.task
+def post_links(rss_results, token):
+    for link in rss_results:
+        r = context.post_article(link, token)
+        print 'yee'
+        if r.status_code == 500:
+            print r.text
+            print link
     return True
 
+
+@app.task
 def get_all_feeds(token):
     feed_urls = []
     r = context.get_publisher(token).json()
@@ -39,13 +48,17 @@ def get_all_feeds(token):
 @app.task
 def post_all_feeds():
     token = context.get_login_token()
-    urls = get_all_feeds(token)
+    urls = get_all_feeds.AsyncResult(token)
 
-    for url in urls:
-        if len(url) > 1:
-            get_rss_links(url, token, tag=url[1])
-        else:
-            get_rss_links(url, token)
+    if urls.ready():
+        for url in urls:
+            if len(url) > 1:
+                rss = get_rss_results.AsyncResult(url, tag=url[1])
+            else:
+                rss = get_rss_results.AsyncResult(url)
+
+            if rss.ready():
+                post_links(rss, token)
     return True
 
 
