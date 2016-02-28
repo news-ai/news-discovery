@@ -1,13 +1,10 @@
 import redis
-from celery import Celery
+from taskrunner import app
 from celery import chain
-import celeryconfig
 import feedparser
 import context
 import json
 
-app = Celery('feed', broker='redis://localhost:6379/0')
-app.config_from_object(celeryconfig)
 
 r = redis.StrictRedis()
 # TODO: delete old articles from redis after posting
@@ -42,7 +39,8 @@ def get_batch_articles():
 
 # 15 min
 @app.task
-def save_all_publisher_feeds_to_redis(token):
+def save_all_publisher_feeds_to_redis():
+    token = context.get_login_token()
     feed_urls = []
     res = context.get_publisher(token).json()
     for publisher in res.get('results'):
@@ -55,16 +53,8 @@ def save_all_publisher_feeds_to_redis(token):
 
 
 @app.task
-def post_all_feeds(token):
+def post_all_feeds():
+    token = context.get_login_token()
     chain = get_batch_articles.s() | post_articles_from_redis.s(token)
     chain()
     return True
-
-
-if __name__ == "__main__":
-    token = context.get_login_token()
-    post_all_feeds.delay(token)
-    save_all_publisher_feeds_to_redis.delay(token)
-    # token = context.get_login_token()
-    # save_all_publisher_feeds_to_redis(token)
-    # print r.get('publisher_feeds')

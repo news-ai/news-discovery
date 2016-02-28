@@ -3,7 +3,7 @@
 Discovering and finding new news articles
 
 Run Celery with:
-`celery worker -A feed -l info -c 5`
+`celery worker -A taskrunner --beat -l info -c 5`
 
 Start Redis:
 `redis-server`

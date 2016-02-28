@@ -1,13 +1,10 @@
 import redis
-from celery import Celery
+from taskrunner import app
 from celery import chain
 import celeryconfig
 import feedparser
 import context
 import json
-
-app = Celery('feeds_to_redis', broker='redis://localhost:6379/0')
-app.config_from_object(celeryconfig)
 
 r = redis.StrictRedis()
 # TODO: delete old articles from redis after posting
@@ -55,7 +52,3 @@ def save_all_feeds_to_redis():
     chain()
     print r.get('pending_urls')
     return True
-
-
-if __name__ == "__main__":
-    save_all_feeds_to_redis.delay()
