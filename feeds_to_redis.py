@@ -4,51 +4,48 @@ from celery import chain
 import celeryconfig
 import feedparser
 import context
+import json
 
-app = Celery('feed', broker='redis://localhost:6379/0')
+app = Celery('feeds_to_redis', broker='redis://localhost:6379/0')
 app.config_from_object(celeryconfig)
 
 r = redis.StrictRedis()
 # TODO: delete old articles from redis after posting
 
 
-# 1 min
 @app.task
 def get_all_redis_publisher_feeds():
-    return r.get('publisher_feeds')
+    return json.loads(r.get('publisher_feeds'))
 
 
-# 1 min
 @app.task
-def get_rss_from_publisher_feeds(urls):
+def get_rss_from_publisher_feeds(feeds):
     article_links = []
-    for url in urls:
+    for url in feeds:
         d = feedparser.parse(url[0])
+        # print d
         for entry in d.get('entries'):
             if len(url) == 1:
-                ret.append(entry.get('id'))
+                article_links.append(entry.get('id'))
             else:
-                ret.append(entry.get(url[1]))
+                article_links.append(entry.get(url[1]))
     return article_links
 
 
-# 1 min
 @app.task
 def save_article_links_to_redis(urls):
-    r.set('pending_urls', urls)
-    return True
+    r.set('pending_urls', json.dumps(urls))
+    return urls
 
 
-# 1 min
 @app.task
 def save_articles_to_redis(urls):
     for url in urls:
-        article = context.read_article_without_author(url)
+        article = json.dumps(context.read_article_without_author(url))
         r.set(url, article)
     return True
 
 
-# 1 min
 @app.task
 def save_all_feeds_to_redis():
     chain = get_all_redis_publisher_feeds.s() | \
@@ -56,14 +53,9 @@ def save_all_feeds_to_redis():
         save_article_links_to_redis.s() | \
         save_articles_to_redis.s()
     chain()
+    print r.get('pending_urls')
     return True
 
 
 if __name__ == "__main__":
-    publisher_feeds = get_all_redis_publisher_feeds()
-    article_links = get_rss_from_publisher_feeds(publisher_feeds)
-    save_articles_to_redis(article_links)
-    save_articles_to_redis(article_links)
-    print 'Done'
-    print
-
+    save_all_feeds_to_redis.delay()

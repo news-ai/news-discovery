@@ -37,6 +37,8 @@ def url_validate(url):
     )
 
 
+# checking if author exists takes 3 API calls
+# we don't want to run into max requests limit issues when we batch process
 def read_article_without_author(url):
     article = Article(url)
     article.download()
@@ -94,7 +96,10 @@ def post_article(url, token):
     return r
 
 
-def post_article_no_author(url, article, token):
+# checking if author exists takes 3 API calls
+# we don't want to run into max requests limit issues when we batch process
+# can also post multiples articles in a list
+def post_article_without_author(article, token):
     if token is None:
         print 'Missing token'
         return
