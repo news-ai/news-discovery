@@ -10,9 +10,9 @@ CELERY_ENABLE_UTC = True
 CELERY_TIMEZONE = 'UTC'
 CELERYBEAT_SCHEDULE = {
         'post-feeds-to-api-every-fifteen-minutes': {
-            'task': 'feeds_to_api.post_all_feeds',
+            'task': 'feeds_to_api.post_batch_articles',
             'schedule': timedelta(minutes=15),
-            'args': ()
+            'args': (10)
             },
         'save_publisher_feeds_to_redis_every_fifteen-minutes': {
             'task': 'feeds_to_api.save_all_publisher_feeds_to_redis',

@@ -30,7 +30,7 @@ def post_articles_from_redis(articles, token):
 
 
 @app.task
-def get_batch_articles(batch_size):
+def post_batch_articles(batch_size):
     if r.exists('pending_urls'):
         articles = []
         token = context.get_login_token()
@@ -58,16 +58,6 @@ def save_all_publisher_feeds_to_redis():
         else:
             feed_urls.append([publisher['feed_url']])
     r.set('publisher_feeds', json.dumps(feed_urls))
-    return True
-
-
-@app.task
-def post_all_feeds():
-    # token = context.get_login_token()
-    # chain = get_batch_articles.s() | post_articles_from_redis.s(token)
-    # chain()
-    # return True
-    get_batch_articles.delay(100)
     return True
 
 
