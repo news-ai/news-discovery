@@ -24,7 +24,7 @@ def check_publisher_feeds():
             else:
                 feed_urls.append([publisher['feed_url']])
         r.set('publisher_feeds', json.dumps(feed_urls))
-    return True
+
 
 @app.task
 def get_all_publisher_feeds_from_redis():
@@ -90,7 +90,8 @@ def run_nytimes():
 
 @app.task
 def save_all_feeds_to_redis():
-    chain = check_publisher_feeds.s() | get_all_publisher_feeds_from_redis.s() | \
+    check_publisher_feeds()
+    chain = get_all_publisher_feeds_from_redis.s() | \
         get_rss_from_publisher_feeds.s() | \
         save_article_links_to_redis.s() | \
         save_articles_to_redis.s()
