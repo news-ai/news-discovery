@@ -50,5 +50,4 @@ def save_all_feeds_to_redis():
         save_article_links_to_redis.s() | \
         save_articles_to_redis.s()
     chain()
-    print r.get('pending_urls')
     return True
