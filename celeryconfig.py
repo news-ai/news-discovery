@@ -21,7 +21,7 @@ CELERYBEAT_SCHEDULE = {
             },
         'save-feeds-to-redis-every-minute': {
             'task': 'feeds_to_redis.save_all_feeds_to_redis',
-            'schedule': timedelta(minutes=1),
+            'schedule': timedelta(minutes=5),
             'args': ()
             },
         'save-nytime-articles-every-fifteen-minutes': {

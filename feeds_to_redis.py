@@ -97,3 +97,8 @@ def save_all_feeds_to_redis():
         save_articles_to_redis.s()
     chain()
     return True
+
+# pub_links = get_all_publisher_feeds_from_redis()
+# article_links = get_rss_from_publisher_feeds(pub_links)
+# save_article_links_to_redis(article_links)
+# save_articles_to_redis(article_links)

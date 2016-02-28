@@ -20,21 +20,30 @@ def test_rss_feed(url, token):
 # add batch processing
 @app.task
 def post_articles_from_redis(articles, token):
-    res = context.post_article_without_author(articles, token)
-    print res.text
-    if res.status_code == 500:
+    if len(articles) > 0:
+        res = context.post_article_without_author(articles, token)
         print res.text
+        print res.status_code
+        if res.status_code == 500:
+            print res.text
     return True
 
 
 @app.task
-def get_batch_articles():
-    articles = []
-    article_urls = json.loads(r.get('pending_urls'))
-    for article_url in article_urls:
-        article_obj = json.loads(r.get(article_url))
-        articles.append(article_obj)
-    return articles
+def get_batch_articles(batch_size):
+    if r.exists('pending_urls'):
+        articles = []
+        token = context.get_login_token()
+        article_urls = json.loads(r.get('pending_urls'))
+        for article_url in article_urls:
+            article_obj = json.loads(r.get(article_url))
+            article_obj['authors'] = []
+            articles.append(article_obj)
+            if len(articles) >= batch_size:
+                post_articles_from_redis(articles, token)
+                articles = []
+        post_articles_from_redis(articles, token)
+    return True
 
 
 # 15 min
@@ -54,7 +63,13 @@ def save_all_publisher_feeds_to_redis():
 
 @app.task
 def post_all_feeds():
-    token = context.get_login_token()
-    chain = get_batch_articles.s() | post_articles_from_redis.s(token)
-    chain()
+    # token = context.get_login_token()
+    # chain = get_batch_articles.s() | post_articles_from_redis.s(token)
+    # chain()
+    # return True
+    get_batch_articles.delay(100)
     return True
+
+
+# get_batch_articles(5)
+# post_articles_from_redis(urls, token)
