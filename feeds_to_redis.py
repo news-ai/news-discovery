@@ -2,8 +2,10 @@ import redis
 from taskrunner import app
 from celery import chain
 import celeryconfig
+import requests
 import feedparser
 import context
+import os
 import json
 
 r = redis.StrictRedis()
@@ -31,9 +33,11 @@ def get_rss_from_publisher_feeds(feeds):
 
 @app.task
 def save_article_links_to_redis(urls):
+    if r.exists('pending_urls') == False:
+        r.set('pending_urls', json.dumps([]))
     article_links = []
     for url in urls:
-        if r.exists(json.dumps(url)) == 0:
+        if r.exists(json.dumps(url)) == False:
             urls = json.loads(r.get('pending_urls'))
             urls.append(url)
             r.set('pending_urls', json.dumps(urls))
@@ -46,6 +50,27 @@ def save_articles_to_redis(urls):
     for url in urls:
         article = json.dumps(context.read_article_without_author(url))
         r.set(url, article)
+    return True
+
+
+@app.task
+def get_nytimes_links():
+    newswire = 'http://api.nytimes.com/svc/news/v3/content/all/all.json?api-key=' + \
+        os.environ.get('NYTIMES')
+    data = requests.get(newswire).json()
+    urls = []
+    for result in data['results']:
+        url = result.get('url')
+        if url is not None:
+            urls.append(url)
+    return urls
+
+
+@app.task
+def run_nytimes():
+    chain = get_nytimes_links.s() | save_article_links_to_redis.s() | \
+            save_articles_to_redis.s()
+    chain()
     return True
 
 
