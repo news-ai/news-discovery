@@ -10,3 +10,6 @@ Start Redis:
 
 Check if it's running:
 `redis-cli ping`
+
+####Notes:
+Run `feeds_to_api.save_publisher_feeds_to_redis` first if starting with a new Redis

@@ -13,6 +13,20 @@ r = redis.StrictRedis()
 
 
 @app.task
+def check_publisher_feeds():
+    if r.exists('publisher_feeds') == False:
+        token = context.get_login_token()
+        feed_urls = []
+        res = context.get_publisher(token).json()
+        for publisher in res.get('results'):
+            if len(publisher.get('tags')) > 0:
+                feed_urls.append([publisher['feed_url'], publisher['tags']])
+            else:
+                feed_urls.append([publisher['feed_url']])
+        r.set('publisher_feeds', json.dumps(feed_urls))
+    return True
+
+@app.task
 def get_all_publisher_feeds_from_redis():
     return json.loads(r.get('publisher_feeds'))
 
@@ -76,7 +90,7 @@ def run_nytimes():
 
 @app.task
 def save_all_feeds_to_redis():
-    chain = get_all_publisher_feeds_from_redis.s() | \
+    chain = check_publisher_feeds.s() | get_all_publisher_feeds_from_redis.s() | \
         get_rss_from_publisher_feeds.s() | \
         save_article_links_to_redis.s() | \
         save_articles_to_redis.s()
