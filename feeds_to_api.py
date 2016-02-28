@@ -22,9 +22,9 @@ def test_rss_feed(url, token):
 # 15 min
 # add batch processing
 @app.task
-def post_articles_from_redis(token):
-    articles = get_batch_articles()
+def post_articles_from_redis(articles, token):
     res = context.post_article_without_author(articles, token)
+    print res.text
     if res.status_code == 500:
         print res.text
     return True
@@ -35,7 +35,7 @@ def get_batch_articles():
     articles = []
     article_urls = json.loads(r.get('pending_urls'))
     for article_url in article_urls:
-        article_obj = context.read_article_without_author(article_url)
+        article_obj = json.loads(r.get(article_url))
         articles.append(article_obj)
     return articles
 

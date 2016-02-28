@@ -14,7 +14,7 @@ r = redis.StrictRedis()
 
 
 @app.task
-def get_all_redis_publisher_feeds():
+def get_all_publisher_feeds_from_redis():
     return json.loads(r.get('publisher_feeds'))
 
 
@@ -48,7 +48,7 @@ def save_articles_to_redis(urls):
 
 @app.task
 def save_all_feeds_to_redis():
-    chain = get_all_redis_publisher_feeds.s() | \
+    chain = get_all_publisher_feeds_from_redis.s() | \
         get_rss_from_publisher_feeds.s() | \
         save_article_links_to_redis.s() | \
         save_articles_to_redis.s()
