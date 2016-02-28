@@ -31,8 +31,14 @@ def get_rss_from_publisher_feeds(feeds):
 
 @app.task
 def save_article_links_to_redis(urls):
-    r.set('pending_urls', json.dumps(urls))
-    return urls
+    article_links = []
+    for url in urls:
+        if r.exists(json.dumps(url)) == 0:
+            urls = json.loads(r.get('pending_urls'))
+            urls.append(url)
+            r.set('pending_urls', json.dumps(urls))
+            article_links.append(url)
+    return article_links
 
 
 @app.task
