@@ -1,7 +1,6 @@
 import redis
 from taskrunner import app
 from celery import chain
-import celeryconfig
 import requests
 import feedparser
 import context
@@ -9,12 +8,11 @@ import os
 import json
 
 r = redis.StrictRedis()
-# TODO: delete old articles from redis after posting
 
 
 @app.task
 def check_publisher_feeds():
-    if r.exists('publisher_feeds') == False:
+    if r.exists('publisher_feeds') is False:
         token = context.get_login_token()
         feed_urls = []
         res = context.get_publisher(token).json()
@@ -47,11 +45,11 @@ def get_rss_from_publisher_feeds(feeds):
 
 @app.task
 def save_article_links_to_redis(urls):
-    if r.exists('pending_urls') == False:
+    if r.exists('pending_urls') is False:
         r.set('pending_urls', json.dumps([]))
     article_links = []
     for url in urls:
-        if r.exists(json.dumps(url)) == False:
+        if r.exists(json.dumps(url)) is False:
             urls = json.loads(r.get('pending_urls'))
             urls.append(url)
             r.set('pending_urls', json.dumps(urls))

@@ -7,7 +7,6 @@ import json
 
 
 r = redis.StrictRedis()
-# TODO: delete old articles from redis after posting
 
 
 def test_rss_feed(url, token):
@@ -16,8 +15,6 @@ def test_rss_feed(url, token):
         print entry
 
 
-# 15 min
-# add batch processing
 @app.task
 def post_articles_from_redis(articles, token):
     if len(articles) > 0:
@@ -26,6 +23,13 @@ def post_articles_from_redis(articles, token):
         print res.status_code
         if res.status_code == 500:
             print res.text
+    return True
+
+
+@app.task
+def remove_articles_from_redis(article_urls):
+    for url in article_urls:
+        r.set(url, "DONE")
     return True
 
 
@@ -43,6 +47,8 @@ def post_batch_articles(batch_size):
                 post_articles_from_redis(articles, token)
                 articles = []
         post_articles_from_redis(articles, token)
+        remove_articles_from_redis(article_urls)
+        r.set('pending_urls', json.dumps([]))
     return True
 
 
