@@ -1,3 +1,7 @@
+# Ignore
+celerybeat-schedule
+dump.rdb
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
