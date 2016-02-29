@@ -60,8 +60,13 @@ def save_article_links_to_redis(urls):
 @app.task
 def save_articles_to_redis(urls):
     for url in urls:
-        article = json.dumps(context.read_article_without_author(url))
-        r.set(url, article)
+        print url
+        try:
+            article = json.dumps(context.read_article_without_author(url))
+            r.set(url, article)
+        except ArticleException as e:
+            print e
+            pass
     return True
 
 
