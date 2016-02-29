@@ -34,7 +34,7 @@ def remove_articles_from_redis(article_urls):
 
 
 @app.task
-def post_batch_articles(batch_size):
+def post_batch_articles(batch_size, _):
     if r.exists('pending_urls'):
         articles = []
         token = context.get_login_token()

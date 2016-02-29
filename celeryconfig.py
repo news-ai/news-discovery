@@ -12,7 +12,7 @@ CELERYBEAT_SCHEDULE = {
         'post-feeds-to-api-every-fifteen-minutes': {
             'task': 'feeds_to_api.post_batch_articles',
             'schedule': timedelta(minutes=15),
-            'args': (10)
+            'args': (10, 0)
             },
         'save_publisher_feeds_to_redis_every_fifteen-minutes': {
             'task': 'feeds_to_api.save_all_publisher_feeds_to_redis',
