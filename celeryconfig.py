@@ -19,7 +19,7 @@ CELERYBEAT_SCHEDULE = {
             'schedule': timedelta(minutes=15),
             'args': ()
             },
-        'save-feeds-to-redis-every-minute': {
+        'save-feeds-to-redis-every-five-minutes': {
             'task': 'feeds_to_redis.save_all_feeds_to_redis',
             'schedule': timedelta(minutes=5),
             'args': ()
