@@ -1,4 +1,5 @@
 import redis
+from pymongo import MongoClient
 from taskrunner import app
 from celery import chain
 import requests
@@ -8,6 +9,9 @@ import os
 import json
 
 r = redis.StrictRedis()
+client = MongoClient(connect=False)
+db = client.news_discovery
+seen_collection = db.discovered
 
 
 @app.task
@@ -49,22 +53,24 @@ def save_article_links_to_redis(urls):
         r.set('pending_urls', json.dumps([]))
     article_links = []
     for url in urls:
-        if r.exists(json.dumps(url)) is False:
+        if seen_collection.find_one({'url': url}) is None:
             urls = json.loads(r.get('pending_urls'))
             urls.append(url)
             r.set('pending_urls', json.dumps(urls))
             article_links.append(url)
+    print article_links
     return article_links
 
 
 @app.task
 def save_articles_to_redis(urls):
+    print urls
     for url in urls:
-        print url
         try:
             article = json.dumps(context.read_article_without_author(url))
             r.set(url, article)
-        except ArticleException as e:
+            r.expire(url, 60 * 30)
+        except Exception as e:
             print e
             pass
     return True
@@ -101,7 +107,8 @@ def save_all_feeds_to_redis():
     chain()
     return True
 
+# check_publisher_feeds()
 # pub_links = get_all_publisher_feeds_from_redis()
 # article_links = get_rss_from_publisher_feeds(pub_links)
-# save_article_links_to_redis(article_links)
+# article_links = save_article_links_to_redis(article_links)
 # save_articles_to_redis(article_links)

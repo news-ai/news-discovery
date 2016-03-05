@@ -1,12 +1,17 @@
 import redis
+import datetime
 from taskrunner import app
 from celery import chain
 import feedparser
+from pymongo import MongoClient
 import context
 import json
 
 
 r = redis.StrictRedis()
+client = MongoClient(connect=False)
+db = client.news_discovery
+seen_collection = db.discovered
 
 
 def test_rss_feed(url, token):
@@ -29,7 +34,12 @@ def post_articles_from_redis(articles, token):
 @app.task
 def remove_articles_from_redis(article_urls):
     for url in article_urls:
-        r.set(url, "DONE")
+        r.delete(url)
+        post = {
+                'url': url,
+                'date': datetime.datetime.utcnow()
+                }
+        seen_collection.insert_one(post)
     return True
 
 
@@ -40,6 +50,7 @@ def post_batch_articles(batch_size, _):
         token = context.get_login_token()
         article_urls = json.loads(r.get('pending_urls'))
         for article_url in article_urls:
+            print article_url
             article_obj = json.loads(r.get(article_url))
             article_obj['authors'] = []
             articles.append(article_obj)
@@ -47,7 +58,7 @@ def post_batch_articles(batch_size, _):
                 post_articles_from_redis(articles, token)
                 articles = []
         post_articles_from_redis(articles, token)
-        remove_articles_from_redis(article_urls)
+        remove_articles_from_redis.delay(article_urls)
         r.set('pending_urls', json.dumps([]))
     return True
 
