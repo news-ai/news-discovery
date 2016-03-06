@@ -51,9 +51,10 @@ def post_batch_articles(batch_size, _):
         article_urls = json.loads(r.get('pending_urls'))
         for article_url in article_urls:
             print article_url
-            article_obj = json.loads(r.get(article_url))
-            article_obj['authors'] = []
-            articles.append(article_obj)
+            if r.get(article_url):
+                article_obj = json.loads(r.get(article_url))
+                article_obj['authors'] = []
+                articles.append(article_obj)
             if len(articles) >= batch_size:
                 post_articles_from_redis(articles, token)
                 articles = []
