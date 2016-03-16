@@ -53,7 +53,7 @@ def read_article_without_author(url):
     if article.publish_date:
         data['created_at'] = str(article.publish_date)
     data['header_image'] = article.top_image
-    data['basic_summary'] = article.summary
+    data['summary'] = article.summary
     return data
 
 
