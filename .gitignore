@@ -1,5 +1,6 @@
 # Ignore
 celerybeat-schedule
+celerybeat-schedule.db
 dump.rdb
 
 # Byte-compiled / optimized / DLL files
