@@ -14,12 +14,6 @@ db = client.news_discovery
 seen_collection = db.discovered
 
 
-def test_rss_feed(url, token):
-    d = feedparser.parse(url)
-    for entry in d.get('entries'):
-        print entry
-
-
 @app.task
 def post_articles_from_redis(articles, token):
     if len(articles) > 0:
