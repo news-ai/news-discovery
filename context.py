@@ -195,6 +195,6 @@ def get_publisher(token):
         "authorization": "Bearer " + token
     }
 
-    r = requests.get(base_url + '/publisherfeeds/?9', headers=headers,
+    r = requests.get(base_url + '/publisherfeeds/?limit=1000', headers=headers,
             verify=False)
     return r
