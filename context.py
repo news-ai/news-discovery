@@ -1,8 +1,8 @@
+from __future__ import print_function
 import requests
 import json
 import os
 from urlparse import urlparse
-
 from newspaper import Article
 
 
@@ -81,7 +81,7 @@ def read_article(url, token):
 
 def post_article(url, token):
     if token is None:
-        print 'Missing token'
+        print('Missing token')
         return
     headers = {
         "content-type": "application/json",
@@ -101,7 +101,7 @@ def post_article(url, token):
 # can also post multiples articles in a list
 def post_article_without_author(article, token):
     if token is None:
-        print 'Missing token'
+        print('Missing token')
         return
     headers = {
         "content-type": "application/json",
@@ -124,7 +124,7 @@ def is_author_valid(author_name):
 
 def post_author(publisher, authors, token):
     if token is None:
-        print 'Missing token'
+        print('Missing token')
         return
 
     if len(authors) is 0:
@@ -157,7 +157,7 @@ def post_author(publisher, authors, token):
                     r = requests.post(base_url + '/authors/',
                                       headers=headers, data=json.dumps(payload), verify=False)
                     data = json.loads(r.text)
-                    print data
+                    print(data)
                     author_list.append(data)
 
     return author_list
@@ -165,7 +165,7 @@ def post_author(publisher, authors, token):
 
 def post_publisher(url, publisher, name, token):
     if token is None:
-        print 'Missing token'
+        print('Missing token')
         return
     headers = {
         "content-type": "application/json",
@@ -186,7 +186,7 @@ def post_publisher(url, publisher, name, token):
 
 def get_publisher(token):
     if token is None:
-        print 'Missing token'
+        print('Missing token')
         return
     
     headers = {

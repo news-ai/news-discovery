@@ -9,19 +9,19 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ENABLE_UTC = True
 CELERY_TIMEZONE = 'UTC'
 CELERYBEAT_SCHEDULE = {
-        'post-feeds-to-api-every-fifteen-minutes': {
+        'post-feeds-to-api-every-thirty-minutes': {
             'task': 'feeds_to_api.post_batch_articles',
-            'schedule': timedelta(minutes=10),
+            'schedule': timedelta(minutes=30),
             'args': (10, 0)
             },
-        'save_publisher_feeds_to_redis_every_fifteen-minutes': {
+        'save-publisher-feeds-to-redis-every-thirty-minutes': {
             'task': 'feeds_to_api.save_all_publisher_feeds_to_redis',
-            'schedule': timedelta(minutes=15),
+            'schedule': timedelta(minutes=30),
             'args': ()
             },
-        'save-feeds-to-redis-every-five-minutes': {
-            'task': 'feeds_to_redis.save_all_feeds_to_redis',
-            'schedule': timedelta(minutes=5),
+        'save-articles-to-redis-every-fifteen-minutes': {
+            'task': 'feeds_to_redis.save_all_articles_to_redis',
+            'schedule': timedelta(minutes=15),
             'args': ()
             },
         'save-nytime-articles-every-fifteen-minutes': {

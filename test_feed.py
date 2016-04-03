@@ -1,17 +1,17 @@
+from __future__ import print_function
 import feedparser
 import context
 from bs4 import BeautifulSoup
 import requests
-import newspaper
 
 # test RSS feed url
 def test_rss_feed(url):
     d = feedparser.parse(url)
     for entry in d.get('entries'):
         # print entry
-        print entry.id
+        print(entry.id)
         # print entry.feedburner_origlink
-        print entry.link
+        print(entry.link)
 
 def test_non_rss_page(url):
     # working on scraping local news site without feed
@@ -24,29 +24,24 @@ def test_non_rss_page(url):
     for link in soup.find_all('a'):
         url = link.get('href')
         if url is not None:
-            print url
+            print(url)
             # sp = url.split('/')
             # if len(sp) > 1:
             #     if sp[2] == match:
             #         arr.append(url)
-    print arr
+    print(arr)
 
 url_cred = 'http://www.empirestatenews.net/home/'
 
 url1 = 'http://www.amny.com/news'
 url2 = 'http://www.theepochtimes.com'
 url3 = 'http://nyulocal.com'
-
-
-# url = 'http://www.nydailynews.com/index_rss.xml'
-# test_rss_feed(url)
-# url = 'http://www.gothamgazette.com/index.php/government/6234-cuomos-public-schedules-offer-little-information'
-# match = 'www.gothamgazette.com'
-# url = 'http://www.dailygazette.com/news/local/'
-# test_non_rss_page(url)
-# url = 'http://www.qgazette.com/news.xml'
-# url = 'http://www.qchron.com/search/?q=&t=article&l=100&d=&d1=&d2=&s=start_time&sd=desc&nsa=eedition&c[]=editions/south,editions/south/*&f=rss'
-# test_rss_feed(url)
-
 url = 'https://www.indypendent.org/rss.xml'
-test_rss_feed(url)
+url = 'http://espn.go.com/mlb/story/_/page/seasonpreview_wsbluejays/why-toronto-blue-jays-win-world-series'
+url = 'http://www.nydailynews.com/news/crime/slain-va-trooper-made-arrest-woman-dead-son-car-article-1.2585840'
+url = 'http://www.bbc.com/news/magazine-35942519'
+url = 'http://www.bbc.com/news/uk-35948256'
+url = 'http://www.bbc.com/news/world-europe-35948009'
+url = 'http://observer.com/2016/03/rogerebert-com-holds-women-writers-week-to-celebrate-diversity/'
+# test_rss_feed(url)
+print(context.read_article_without_author(url))

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import redis
 import datetime
 from taskrunner import app
@@ -18,10 +19,10 @@ seen_collection = db.discovered
 def post_articles_from_redis(articles, token):
     if len(articles) > 0:
         res = context.post_article_without_author(articles, token)
-        print res.text
-        print res.status_code
+        print(res.text)
+        print(res.status_code)
         if res.status_code == 500:
-            print res.text
+            print(res.text)
     return True
 
 
@@ -44,7 +45,7 @@ def post_batch_articles(batch_size, _):
         token = context.get_login_token()
         article_urls = json.loads(r.get('pending_urls'))
         for article_url in article_urls:
-            print article_url
+            print(article_url)
             if r.get(article_url):
                 article_obj = json.loads(r.get(article_url))
                 article_obj['authors'] = []

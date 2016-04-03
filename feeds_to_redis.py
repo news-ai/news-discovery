@@ -1,3 +1,4 @@
+from __future__ import print_function
 import redis
 from pymongo import MongoClient
 from taskrunner import app
@@ -58,20 +59,20 @@ def save_article_links_to_redis(urls):
             urls.append(url)
             r.set('pending_urls', json.dumps(urls))
             article_links.append(url)
-    print article_links
+    print(article_links)
     return article_links
 
 
 @app.task
 def save_articles_to_redis(urls):
-    print urls
+    print(urls)
     for url in urls:
         try:
             article = json.dumps(context.read_article_without_author(url))
             r.set(url, article)
             r.expire(url, 60 * 30)
         except Exception as e:
-            print e
+            print(e)
             pass
     return True
 
@@ -97,12 +98,13 @@ def run_nytimes():
     return True
 
 
+# add expiry time to 10 min to prevent task queue blow up
 @app.task
-def save_all_feeds_to_redis():
+def save_all_articles_to_redis():
     check_publisher_feeds()
     chain = get_all_publisher_feeds_from_redis.s() | \
         get_rss_from_publisher_feeds.s() | \
-        save_article_links_to_redis.s() | \
+        save_article_links_to_redis.subtask(options={expires: 10*60}) | \
         save_articles_to_redis.s()
     chain()
     return True
