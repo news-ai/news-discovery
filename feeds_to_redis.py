@@ -104,7 +104,7 @@ def save_all_articles_to_redis():
     check_publisher_feeds()
     chain = get_all_publisher_feeds_from_redis.s() | \
         get_rss_from_publisher_feeds.s() | \
-        save_article_links_to_redis.subtask(options={expires: 10*60}) | \
+        save_article_links_to_redis.s() | \
         save_articles_to_redis.s()
     chain()
     return True
