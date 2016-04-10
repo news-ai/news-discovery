@@ -17,15 +17,18 @@ seen_collection = db.discovered
 
 @app.task
 def check_publisher_feeds():
+    # updates the list of publisher feeds that we are checking
     if r.exists('publisher_feeds') is False:
         token = context.get_login_token()
         feed_urls = []
         res = context.get_publisher(token).json()
         for publisher in res.get('results'):
             if len(publisher.get('tags')) > 0:
-                feed_urls.append([publisher['feed_url'], publisher['tags']])
+                feed_urls.append([publisher['feed_url'], publisher['tags'],
+                    True])
             else:
-                feed_urls.append([publisher['feed_url']])
+                feed_urls.append([publisher['feed_url'], None, True])
+        feed_urls.append(['http://www.nytimes.com', None, False])
         r.set('publisher_feeds', json.dumps(feed_urls))
 
 
@@ -37,29 +40,40 @@ def get_all_publisher_feeds_from_redis():
 @app.task
 def get_rss_from_publisher_feeds(feeds):
     article_links = []
-    for url in feeds:
-        d = feedparser.parse(url[0])
-        # print d
-        for entry in d.get('entries'):
-            if len(url) == 1:
-                article_links.append(entry.get('id'))
-            else:
-                article_links.append(entry.get(url[1]))
+    for feed in feeds:
+        # e.g. url = [RSS_LINK, ARTICLE_LINK_TAG, CAN_RUN]
+        rss_link = feed[0]
+        rss_tag = feed[1]
+        can_run = feed[2]
+        if can_run:
+            d = feedparser.parse(rss_link)
+            for entry in d.get('entries'):
+                if rss_tag is None:
+                    rss_tag = 'id'
+                if entry.get(rss_tag):
+                    article_links.append(entry.get(rss_tag))
     return article_links
 
 
 @app.task
 def save_article_links_to_redis(urls):
-    if r.exists('pending_urls') is False:
-        r.set('pending_urls', json.dumps([]))
-    article_links = []
-    for url in urls:
-        if seen_collection.find_one({'url': url}) is None:
-            urls = json.loads(r.get('pending_urls'))
-            urls.append(url)
-            r.set('pending_urls', json.dumps(urls))
-            article_links.append(url)
-    print(article_links)
+    feeds = json.loads(r.get('publisher_feeds'))
+    for feed in feeds:
+        rss_link = feed[0]
+        pending_obj = json.loads(r.get(rss_link))
+        if pending_obj is None:
+            obj = {'pending_urls': []}
+            r.set(rss_link, json.dumps(obj))
+            pending_urls = []
+        else:
+            pending_urls = pending_obj.get('pending_urls')
+        article_links = []
+        for url in urls:
+            if seen_collection.find_one({'url': url}) is None:
+                pending_urls.append(url)
+                obj = {'pending_urls': pending_urls}
+                r.set(rss_link, json.dumps(obj))
+                article_links.append(url)
     return article_links
 
 
@@ -87,14 +101,16 @@ def get_nytimes_links():
         url = result.get('url')
         if url is not None:
             urls.append(url)
-    return urls
 
-
-@app.task
-def run_nytimes():
-    chain = get_nytimes_links.s() | save_article_links_to_redis.s() | \
-            save_articles_to_redis.s()
-    chain()
+    NY_TIMES_FEED = 'http://www.nytimes.com'
+    pending_urls = json.loads(r.get(NY_TIMES_FEED)).get('pending_urls')
+    if pending_urls is None:
+        r.set(NY_TIMES_FEED, json.dumps({'pending_urls': []}))
+        pending_urls = []
+    for url in urls:
+        if seen_collection.find_one({'url': url}) is None:
+            pending_urls.append(url)
+            r.set(NY_TIMES_FEED, json.dumps({'pending_urls': pending_urls}))
     return True
 
 

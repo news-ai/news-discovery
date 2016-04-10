@@ -25,7 +25,7 @@ CELERYBEAT_SCHEDULE = {
             'args': ()
             },
         'save-nytime-articles-every-fifteen-minutes': {
-            'task': 'feeds_to_redis.run_nytimes',
+            'task': 'feeds_to_redis.get_nytimes_links',
             'schedule': timedelta(minutes=15),
             'args': ()
             }
