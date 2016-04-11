@@ -6,6 +6,10 @@ from urlparse import urlparse
 from newspaper import Article
 
 
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+# Removing requests warning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
 base_url = 'https://context.newsai.org/api'
 
 

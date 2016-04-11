@@ -9,6 +9,7 @@ import context
 import json
 
 
+
 r = redis.StrictRedis()
 client = MongoClient(connect=False)
 db = client.news_discovery
@@ -40,27 +41,38 @@ def remove_articles_from_redis(article_urls):
 # in REDIS
 # feed_link : { pending_urls: [url1, url2, url3] }
 
+
 @app.task
-def post_batch_articles(batch_size, _):
+def post_batch_articles(batch_size, rss_link, token):
+    pending_obj = r.get(rss_link)
+    if pending_obj is None:
+        r.set(rss_link, json.dumps({'pending_urls': []}))
+        return False
+    pending_urls = json.loads(pending_obj).get('pending_urls')
+    if len(pending_urls) > 0:
+        articles = []
+        for article_url in pending_urls:
+            print(article_url)
+            if r.get(article_url):
+                article_obj = json.loads(r.get(article_url))
+                article_obj['authors'] = []
+                articles.append(article_obj)
+            if len(articles) >= batch_size:
+                post_articles_from_redis(articles, token)
+                articles = []
+        post_articles_from_redis(articles, token)
+        remove_articles_from_redis.delay(pending_urls)
+        r.set(rss_link, json.dumps({'pending_urls': []}))
+    return True
+
+
+@app.task
+def post_articles_for_each_feed():
     feeds = json.loads(r.get('publisher_feeds'))
+    token = context.get_login_token()
     for feed in feeds:
         rss_link = feed[0]
-        pending_urls = json.loads(r.get(rss_link)).get('pending_urls')
-        if pending_urls is not None:
-            articles = []
-            token = context.get_login_token()
-            for article_url in pending_urls:
-                print(article_url)
-                if r.get(article_url):
-                    article_obj = json.loads(r.get(article_url))
-                    article_obj['authors'] = []
-                    articles.append(article_obj)
-                if len(articles) >= batch_size:
-                    post_articles_from_redis(articles, token)
-                    articles = []
-            post_articles_from_redis(articles, token)
-            remove_articles_from_redis.delay(pending_urls)
-            r.set(feed[0], json.dumps({'pending_urls': []}))
+        post_batch_articles.delay(10, rss_link, token)
     return True
 
 
@@ -84,5 +96,5 @@ def save_all_publisher_feeds_to_redis():
     return True
 
 
-# get_batch_articles(5)
-# post_articles_from_redis(urls, token)
+# save_all_publisher_feeds_to_redis.delay()
+post_articles_for_each_feed.delay()

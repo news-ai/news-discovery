@@ -9,6 +9,10 @@ import context
 import os
 import json
 
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+# Removing requests warning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
 r = redis.StrictRedis()
 client = MongoClient(connect=False)
 db = client.news_discovery
@@ -24,23 +28,26 @@ def check_publisher_feeds():
         res = context.get_publisher(token).json()
         for publisher in res.get('results'):
             if len(publisher.get('tags')) > 0:
-                feed_urls.append([publisher['feed_url'], publisher['tags'],
-                    True])
+                feed_urls.append([
+                    publisher['feed_url'],
+                    publisher['tags'],
+                    True
+                    ])
             else:
                 feed_urls.append([publisher['feed_url'], None, True])
         feed_urls.append(['http://www.nytimes.com', None, False])
         r.set('publisher_feeds', json.dumps(feed_urls))
-
-
-@app.task
-def get_all_publisher_feeds_from_redis():
-    return json.loads(r.get('publisher_feeds'))
+    return True
 
 
 @app.task
 def get_rss_from_publisher_feeds(feeds):
-    article_links = []
+    feeds = r.get('publisher_feeds')
+    if feeds is None:
+        return False
+    feeds = json.loads(feeds)
     for feed in feeds:
+        article_links = []
         # e.g. url = [RSS_LINK, ARTICLE_LINK_TAG, CAN_RUN]
         rss_link = feed[0]
         rss_tag = feed[1]
@@ -52,34 +59,31 @@ def get_rss_from_publisher_feeds(feeds):
                     rss_tag = 'id'
                 if entry.get(rss_tag):
                     article_links.append(entry.get(rss_tag))
-    return article_links
+        save_article_links_to_redis.delay(article_links, rss_link)
+    return True
 
 
 @app.task
-def save_article_links_to_redis(urls):
-    feeds = json.loads(r.get('publisher_feeds'))
-    for feed in feeds:
-        rss_link = feed[0]
-        pending_obj = json.loads(r.get(rss_link))
-        if pending_obj is None:
-            obj = {'pending_urls': []}
+def save_article_links_to_redis(urls, rss_link):
+    pending_obj = r.get(rss_link)
+    if pending_obj is None:
+        pending_urls = []
+    else:
+        pending_obj = json.loads(pending_obj)
+        pending_urls = pending_obj.get('pending_urls', [])
+    article_links = []
+    for url in urls:
+        if seen_collection.find_one({'url': url}) is None:
+            pending_urls.append(url)
+            obj = {'pending_urls': pending_urls}
             r.set(rss_link, json.dumps(obj))
-            pending_urls = []
-        else:
-            pending_urls = pending_obj.get('pending_urls')
-        article_links = []
-        for url in urls:
-            if seen_collection.find_one({'url': url}) is None:
-                pending_urls.append(url)
-                obj = {'pending_urls': pending_urls}
-                r.set(rss_link, json.dumps(obj))
-                article_links.append(url)
-    return article_links
+            article_links.append(url)
+    save_articles_to_redis.delay(article_links)
+    return True
 
 
 @app.task
 def save_articles_to_redis(urls):
-    print(urls)
     for url in urls:
         try:
             article = json.dumps(context.read_article_without_author(url))
@@ -118,12 +122,10 @@ def get_nytimes_links():
 @app.task
 def save_all_articles_to_redis():
     check_publisher_feeds()
-    chain = get_all_publisher_feeds_from_redis.s() | \
-        get_rss_from_publisher_feeds.s() | \
-        save_article_links_to_redis.s() | \
-        save_articles_to_redis.s()
-    chain()
+    get_rss_from_publisher_feeds.s()
     return True
+
+# save_all_articles_to_redis.delay()
 
 # check_publisher_feeds()
 # pub_links = get_all_publisher_feeds_from_redis()
