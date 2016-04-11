@@ -41,25 +41,20 @@ def check_publisher_feeds():
 
 
 @app.task
-def get_rss_from_publisher_feeds(feeds):
-    feeds = r.get('publisher_feeds')
-    if feeds is None:
-        return False
-    feeds = json.loads(feeds)
-    for feed in feeds:
-        article_links = []
-        # e.g. url = [RSS_LINK, ARTICLE_LINK_TAG, CAN_RUN]
-        rss_link = feed[0]
-        rss_tag = feed[1]
-        can_run = feed[2]
-        if can_run:
-            d = feedparser.parse(rss_link)
-            for entry in d.get('entries'):
-                if rss_tag is None:
-                    rss_tag = 'id'
-                if entry.get(rss_tag):
-                    article_links.append(entry.get(rss_tag))
-        save_article_links_to_redis.delay(article_links, rss_link)
+def get_rss_from_publisher_feeds(feed):
+    article_links = []
+    # e.g. url = [RSS_LINK, ARTICLE_LINK_TAG, CAN_RUN]
+    rss_link = feed[0]
+    rss_tag = feed[1]
+    can_run = feed[2]
+    if can_run:
+        d = feedparser.parse(rss_link)
+        for entry in d.get('entries'):
+            if rss_tag is None:
+                rss_tag = 'id'
+            if entry.get(rss_tag):
+                article_links.append(entry.get(rss_tag))
+    save_article_links_to_redis.delay(article_links, rss_link)
     return True
 
 
@@ -78,6 +73,7 @@ def save_article_links_to_redis(urls, rss_link):
             obj = {'pending_urls': pending_urls}
             r.set(rss_link, json.dumps(obj))
             article_links.append(url)
+    print(article_links)
     save_articles_to_redis.delay(article_links)
     return True
 
@@ -107,14 +103,18 @@ def get_nytimes_links():
             urls.append(url)
 
     NY_TIMES_FEED = 'http://www.nytimes.com'
-    pending_urls = json.loads(r.get(NY_TIMES_FEED)).get('pending_urls')
+    pending_obj = r.get(NY_TIMES_FEED)
+    if pending_obj is None:
+        pending_urls = []
+    else:
+        pending_urls = json.loads(r.get(NY_TIMES_FEED)).get('pending_urls')
     if pending_urls is None:
         r.set(NY_TIMES_FEED, json.dumps({'pending_urls': []}))
         pending_urls = []
     for url in urls:
         if seen_collection.find_one({'url': url}) is None:
             pending_urls.append(url)
-            r.set(NY_TIMES_FEED, json.dumps({'pending_urls': pending_urls}))
+    r.set(NY_TIMES_FEED, json.dumps({'pending_urls': pending_urls}))
     return True
 
 
@@ -122,7 +122,13 @@ def get_nytimes_links():
 @app.task
 def save_all_articles_to_redis():
     check_publisher_feeds()
-    get_rss_from_publisher_feeds.s()
+    feeds = r.get('publisher_feeds')
+    if feeds is None:
+        return False
+    feeds = json.loads(feeds)
+    for feed in feeds:
+        print(feed)
+        get_rss_from_publisher_feeds.delay(feed)
     return True
 
 # save_all_articles_to_redis.delay()

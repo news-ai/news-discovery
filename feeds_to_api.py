@@ -9,7 +9,6 @@ import context
 import json
 
 
-
 r = redis.StrictRedis()
 client = MongoClient(connect=False)
 db = client.news_discovery
@@ -60,7 +59,8 @@ def post_batch_articles(batch_size, rss_link, token):
             if len(articles) >= batch_size:
                 post_articles_from_redis(articles, token)
                 articles = []
-        post_articles_from_redis(articles, token)
+        print(articles)
+        post_articles_from_redis.delay(articles, token)
         remove_articles_from_redis.delay(pending_urls)
         r.set(rss_link, json.dumps({'pending_urls': []}))
     return True
