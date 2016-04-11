@@ -28,5 +28,5 @@ CELERYBEAT_SCHEDULE = {
             'task': 'feeds_to_api.post_articles_for_each_feed',
             'schedule': timedelta(minutes=30),
             'args': ()
-            },
+            }
         }

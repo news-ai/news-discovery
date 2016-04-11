@@ -97,4 +97,4 @@ def save_all_publisher_feeds_to_redis():
 
 
 # save_all_publisher_feeds_to_redis.delay()
-post_articles_for_each_feed.delay()
+# post_articles_for_each_feed.delay()
