@@ -167,7 +167,7 @@ def post_author(publisher, authors, token):
     return author_list
 
 
-def post_publisher(url, publisher, name, token):
+def post_publisher(url, name, short_name, is_approved, token):
     if token is None:
         print('Missing token')
         return
@@ -179,8 +179,9 @@ def post_publisher(url, publisher, name, token):
 
     payload = {
         "url": url,
-        'publisher': publisher,
-        'name': name
+        'name': name,
+        'short_name': short_name,
+        'is_approved': is_approved
     }
 
     r = requests.post(base_url + '/publishers/',
