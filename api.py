@@ -4,6 +4,9 @@ import json
 # Third-party app imports
 from flask import Flask, request
 from urlparse import urlparse
+
+# Imports from app
+from middleware import crossdomain
 import context
 
 app = Flask(__name__)
@@ -14,6 +17,7 @@ app = Flask(__name__)
 
 
 @app.route("/discovery", methods=['POST'])
+@crossdomain.crossdomain(origin='*')
 def discovery_server():
     if request.method == 'POST':
         if request.headers['Content-Type'] == 'application/json':
