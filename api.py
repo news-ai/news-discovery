@@ -18,7 +18,6 @@ CORS(app)
 
 
 @app.route("/discovery", methods=['POST', 'OPTIONS'])
-@crossdomain.crossdomain(origin='*')
 def discovery_server():
     content = request.json
     stops = ['www', 'com', 'org', 'io']
