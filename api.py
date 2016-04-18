@@ -16,7 +16,7 @@ app = Flask(__name__)
 #         'https://99f7cb4fd29148f783ef5300f867570d:dabc526c069241dd852cc2b756c2cd06@app.getsentry.com/69539')
 
 
-@app.route("/discovery", methods=['POST'])
+@app.route("/discovery", methods=['POST', 'OPTIONS'])
 @crossdomain.crossdomain(origin='*')
 def discovery_server():
     if request.method == 'POST':
