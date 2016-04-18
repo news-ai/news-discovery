@@ -3,13 +3,14 @@ import json
 
 # Third-party app imports
 from flask import Flask, request, jsonify
+from flask.ext.cors import CORS
 from urlparse import urlparse
 
 # Imports from app
-from middleware import crossdomain
 import context
 
 app = Flask(__name__)
+CORS(app)
 
 # if not config.DEBUG:
 #     client = Client(
