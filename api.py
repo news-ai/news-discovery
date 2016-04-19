@@ -35,7 +35,7 @@ def discovery_server():
             token)
     article = context.read_article_without_author(content.get('url'))
     article['authors'] = []
-    article['added_by'] = 'https://context.newsai.org/api/users/' + \
+    article['added_by'] = 'https://internal.newsai.org/api/users/' + \
         str(content.get('added_by')) + '/'
     articles = []
     articles.append(article)
