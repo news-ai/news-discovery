@@ -1,4 +1,5 @@
 from __future__ import print_function
+import json
 import feedparser
 import context
 from bs4 import BeautifulSoup
@@ -44,4 +45,4 @@ url = 'http://www.bbc.com/news/uk-35948256'
 url = 'http://www.bbc.com/news/world-europe-35948009'
 url = 'http://observer.com/2016/03/rogerebert-com-holds-women-writers-week-to-celebrate-diversity/'
 # test_rss_feed(url)
-print(context.read_article_without_author(url))
+print(json.dumps(context.read_article_without_author(url), indent=2))

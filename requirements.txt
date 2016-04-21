@@ -19,8 +19,8 @@ Jinja2==2.8
 kombu==3.0.33
 lxml==3.3.5
 MarkupSafe==0.23
--e git://github.com/news-ai/newspaper.git@ef91d239a90e114a9a91639a64a0f69bcae5c649#egg=newspaper-0.1.8
--e git://github.com/news-ai/newspaper.git@ef91d239a90e114a9a91639a64a0f69bcae5c649#egg=newspaper3k-0.1.8
+-e git+https://github.com/news-ai/newspaper@95297299b0a4db17e32b4a2d67533742de0ed876#egg=newspaper-origin_python-2-head
+-e git+https://github.com/news-ai/newspaper@95297299b0a4db17e32b4a2d67533742de0ed876#egg=newspaper3k-origin_python-2-head
 nltk==2.0.5
 Pillow==2.5.1
 pymongo==3.2.1
