@@ -10,7 +10,7 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 # Removing requests warning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-base_url = 'https://context.newsai.org/api'
+base_url = 'https://internal.newsai.org/api'
 
 
 def get_login_token():
