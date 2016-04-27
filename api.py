@@ -12,9 +12,9 @@ import context
 app = Flask(__name__)
 CORS(app)
 
-# if not config.DEBUG:
-#     client = Client(
-#         'https://99f7cb4fd29148f783ef5300f867570d:dabc526c069241dd852cc2b756c2cd06@app.getsentry.com/69539')
+from raven.contrib.flask import Sentry
+sentry = Sentry(
+    app, dsn='https://a1470015603f469faf398e861a887f0d:37fa444462f142008ba58e488679c9b4@app.getsentry.com/76018')
 
 
 @app.route("/discovery", methods=['POST'])
@@ -28,11 +28,11 @@ def discovery_server():
     is_approved = False
     token = context.get_login_token()
     pr = context.post_publisher(
-            'http://' + url,
-            name,
-            short_name,
-            is_approved,
-            token)
+        'http://' + url,
+        name,
+        short_name,
+        is_approved,
+        token)
     article = context.read_article_without_author(content.get('url'))
     article['authors'] = []
     article['added_by'] = 'https://internal.newsai.org/api/users/' + \
