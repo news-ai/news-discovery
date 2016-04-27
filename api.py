@@ -4,6 +4,7 @@ import json
 # Third-party app imports
 from flask import Flask, request, jsonify
 from flask.ext.cors import CORS
+from raven.contrib.flask import Sentry
 from urlparse import urlparse
 
 # Imports from app
@@ -12,7 +13,6 @@ import context
 app = Flask(__name__)
 CORS(app)
 
-from raven.contrib.flask import Sentry
 sentry = Sentry(
     app, dsn='https://a1470015603f469faf398e861a887f0d:37fa444462f142008ba58e488679c9b4@app.getsentry.com/76018')
 
