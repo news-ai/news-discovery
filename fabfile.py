@@ -33,4 +33,4 @@ def deploy():
             run('pip install -r requirements.txt')
             run('supervisorctl reread')
             run('supervisorctl update')
-            run('supervisorctl restart api')
+            run('supervisorctl restart api workers:celeryd1 workers:celeryd2')
