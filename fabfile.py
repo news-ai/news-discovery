@@ -26,7 +26,7 @@ def celery_purge():
             run('celery -A taskrunner purge')
 
 
-def restart_discovery():
+def deploy():
     with cd("/var/apps/news-discovery"), prefix('source /var/apps/news-discovery/env/bin/activate'):
         with cd("/var/apps/news-discovery/news-discovery"):
             run('git pull origin master')
