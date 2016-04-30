@@ -23,7 +23,7 @@ seen_collection = db.discovered
 def check_publisher_feeds():
     # updates the list of publisher feeds that we are checking
     if r.exists('publisher_feeds') is False:
-        token = context.get_login_token()
+        token = context.get_login_token(False)
         feed_urls = []
         res = context.get_publisher(token).json()
         for publisher in res.get('results'):
@@ -32,7 +32,7 @@ def check_publisher_feeds():
                     publisher['feed_url'],
                     publisher['tags'],
                     True
-                    ])
+                ])
             else:
                 feed_urls.append([publisher['feed_url'], None, True])
         feed_urls.append(['http://www.nytimes.com', None, False])

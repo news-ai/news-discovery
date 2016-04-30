@@ -11,9 +11,10 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 base_url = 'https://internal.newsai.org/api'
+context_base_url = 'https://context.newsai.org/api'
 
 
-def get_login_token():
+def get_login_token(from_discovery):
     headers = {
         "content-type": "application/json",
         "accept": "application/json"
@@ -22,7 +23,12 @@ def get_login_token():
         "username": os.environ.get("NEWSAI_CONTEXT_API_USERNAME"),
         "password": os.environ.get("NEWSAI_CONTEXT_API_PASSWORD"),
     }
-    r = requests.post(base_url + "/jwt-token/",
+
+    context_url = base_url
+    if from_discovery:
+        context_url = context_base_url
+
+    r = requests.post(context_url + "/jwt-token/",
                       headers=headers, data=json.dumps(payload), verify=False)
     data = json.loads(r.text)
     token = data.get('token')
@@ -104,19 +110,24 @@ def post_article(url, token):
 # checking if author exists takes 3 API calls
 # we don't want to run into max requests limit issues when we batch process
 # can also post multiples articles in a list
-def post_article_without_author(article, token):
+def post_article_without_author(article, token, from_discovery):
     if token is None:
         print('Missing token')
         return
+
     headers = {
         "content-type": "application/json",
         "accept": "application/json",
         "authorization": "Bearer " + token
     }
 
+    context_url = base_url
+    if from_discovery:
+        context_url = context_base_url
+
     payload = article
 
-    r = requests.post(base_url + '/articles/',
+    r = requests.post(context_url + '/articles/',
                       headers=headers, data=json.dumps(payload), verify=False)
     return r
 
@@ -168,15 +179,20 @@ def post_author(publisher, authors, token):
     return author_list
 
 
-def post_publisher(url, name, short_name, is_approved, token):
+def post_publisher(url, name, short_name, is_approved, token, from_discovery):
     if token is None:
         print('Missing token')
         return
+
     headers = {
         "content-type": "application/json",
         "accept": "application/json",
         "authorization": "Bearer " + token
     }
+
+    context_url = base_url
+    if from_discovery:
+        context_url = context_base_url
 
     payload = {
         "url": url,
@@ -185,7 +201,7 @@ def post_publisher(url, name, short_name, is_approved, token):
         'is_approved': is_approved
     }
 
-    r = requests.post(base_url + '/publishers/',
+    r = requests.post(context_url + '/publishers/',
                       headers=headers, data=json.dumps(payload), verify=False)
     return r
 
@@ -194,7 +210,7 @@ def get_publisher(token):
     if token is None:
         print('Missing token')
         return
-    
+
     headers = {
         "content-type": "application/json",
         "accept": "application/json",
@@ -202,5 +218,5 @@ def get_publisher(token):
     }
 
     r = requests.get(base_url + '/publisherfeeds/?limit=1000', headers=headers,
-            verify=False)
+                     verify=False)
     return r
