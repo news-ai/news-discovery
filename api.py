@@ -57,4 +57,4 @@ class Discovery(Resource):
 api.add_resource(Discovery, '/discovery')
 
 if __name__ == '__main__':
-    app.run(port=int('8000'), debug=True)
+    app.run(port=int('8000'), debug=False)
