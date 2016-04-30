@@ -31,4 +31,5 @@ def restart_discovery():
         with cd("/var/apps/news-discovery/news-discovery"):
             run('git pull origin master')
             run('pip install -r requirements.txt')
-            run('supervisorctl restart api workers:celeryd1 workers:celeryd2 workers:celeryd3')
+            run('supervisorctl reread')
+            run('supervisorctl restart api workers:celeryd1 workers:celeryd2')
