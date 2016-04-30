@@ -20,6 +20,11 @@ CORS(app)
 # Setting up Sentry
 sentry = Sentry(
     app, dsn='https://a1470015603f469faf398e861a887f0d:37fa444462f142008ba58e488679c9b4@app.getsentry.com/76018')
+logger = logging.getLogger("sentry.errors")
+handler = logging.StreamHandler()
+formatter = logging.Formatter("[%(levelname)s] %(name)s: %(message)s")
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 # Setting up parser
 parser = reqparse.RequestParser()
