@@ -20,6 +20,10 @@ def update_server():
     update_upgrade()
 
 
+def get_logs():
+    get('/var/apps/log', '%(path)s')
+
+
 def celery_purge():
     with cd("/var/apps/news-discovery"), prefix('source /var/apps/news-discovery/env/bin/activate'):
         with cd("/var/apps/news-discovery/news-discovery"):
