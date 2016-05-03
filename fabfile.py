@@ -23,7 +23,7 @@ def update_server():
 def celery_purge():
     with cd("/var/apps/news-discovery"), prefix('source /var/apps/news-discovery/env/bin/activate'):
         with cd("/var/apps/news-discovery/news-discovery"):
-            run('celery -A taskrunner purge')
+            run('echo yes | celery -A taskrunner purge')
 
 
 def deploy():
