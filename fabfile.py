@@ -27,7 +27,7 @@ def get_logs():
 def celery_purge():
     with cd("/var/apps/news-discovery"), prefix('source /var/apps/news-discovery/env/bin/activate'):
         with cd("/var/apps/news-discovery/news-discovery"):
-            run('echo yes | celery -A taskrunner purge')
+            run('echo yes | celery -A taskrunner purge && supervisorctl restart workers:celeryd1 workers:celeryd2')
 
 
 def deploy():
