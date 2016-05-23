@@ -1,18 +1,24 @@
+# Stdlib imports
 from __future__ import print_function
-import redis
-from pymongo import MongoClient
-from taskrunner import app
-from celery import chain
-import requests
-import feedparser
-import context
 import os
 import json
 
+# Third-party app imports
+import redis
+import feedparser
+import requests
+from celery import chain
+from pymongo import MongoClient
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
+# Imports from app
+from taskrunner import app
+import context
+
 # Removing requests warning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+# Setting up Redis & Mongo Instances
 r = redis.StrictRedis()
 client = MongoClient(connect=False)
 db = client.news_discovery

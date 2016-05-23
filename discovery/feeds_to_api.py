@@ -1,12 +1,17 @@
+# Stdlib imports
 from __future__ import print_function
-import redis
 import datetime
-from taskrunner import app
-from celery import chain
-import feedparser
-from pymongo import MongoClient
-import context
 import json
+
+# Third-party app imports
+import redis
+import feedparser
+from celery import chain
+from pymongo import MongoClient
+
+# Imports from app
+from discovery.internal import context
+from taskrunner import app
 
 
 r = redis.StrictRedis()
