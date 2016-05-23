@@ -13,7 +13,7 @@ from pymongo import MongoClient
 from discovery.internal import context
 from taskrunner import app
 
-
+# Setting up Redis & Mongo Instances
 r = redis.StrictRedis()
 client = MongoClient(connect=False)
 db = client.news_discovery

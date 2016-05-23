@@ -13,7 +13,7 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 # Imports from app
 from taskrunner import app
-import context
+from discovery.internal import context
 
 # Removing requests warning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)

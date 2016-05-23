@@ -1,17 +1,23 @@
+# Stdlib imports
 from __future__ import print_function
-import requests
 import json
 import os
+
+# Third-party app imports
+import requests
 from urlparse import urlparse
 from newspaper import Article
-
-
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
+# Imports from app
+from middleware import config
+
 # Removing requests warning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-base_url = 'https://internal.newsai.org/api'
-context_base_url = 'https://context.newsai.org/api'
+# Setting up correct urls
+base_url = config.BASE_URL
+context_base_url = config.CONTEXT_BASE_URL
 
 
 def get_login_token(from_discovery):
@@ -20,8 +26,8 @@ def get_login_token(from_discovery):
         "accept": "application/json"
     }
     payload = {
-        "username": os.environ.get("NEWSAI_CONTEXT_API_USERNAME"),
-        "password": os.environ.get("NEWSAI_CONTEXT_API_PASSWORD"),
+        "username": config.CONTEXT_API_USERNAME,
+        "password": config.CONTEXT_API_PASSWORD,
     }
 
     context_url = base_url
