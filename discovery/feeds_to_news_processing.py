@@ -20,6 +20,9 @@ db = client.news_discovery
 seen_collection = db.discovered
 
 
+# in REDIS
+# feed_link : { pending_urls: [url1, url2, url3] }
+
 @app.task
 def remove_articles_from_redis(article_urls):
     for article_url in article_urls:
@@ -34,17 +37,15 @@ def remove_articles_from_redis(article_urls):
 
 @app.task
 def post_articles_from_redis(article_urls):
-    if len(articles) > 0:
+    if len(article_urls) > 0:
         res = None
         for article_url in article_urls:
             res = context.post_to_news_processing(article_url)
-        if res.status_code == 500:
-            print(res.text)
+            if res.status_code == 500:
+                print(res.text)
     return True
 
 
-# in REDIS
-# feed_link : { pending_urls: [url1, url2, url3] }
 @app.task
 def post_batch_articles(rss_link):
     pending_obj = r.get(rss_link)

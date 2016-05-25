@@ -11,22 +11,22 @@ CELERY_TIMEZONE = 'UTC'
 CELERYBEAT_SCHEDULE = {
     'post-feeds-to-news-processing-every-thirty-minutes': {
         'task': 'discovery.feeds_to_news_processing.post_articles_for_each_feed',
-        'schedule': timedelta(minutes=30),
+        'schedule': timedelta(minutes=15),
         'args': ()
     },
     'save-publisher-feeds-to-redis-every-thirty-minutes': {
         'task': 'discovery.feeds_to_redis.save_all_publisher_feeds_to_redis',
-        'schedule': timedelta(minutes=30),
+        'schedule': timedelta(minutes=10),
         'args': ()
     },
     'save-articles-to-redis-every-fifteen-minutes': {
         'task': 'discovery.feeds_to_redis.save_all_articles_to_redis',
-        'schedule': timedelta(minutes=15),
+        'schedule': timedelta(minutes=10),
         'args': ()
     },
     'save-nytime-articles-every-fifteen-minutes': {
         'task': 'discovery.feeds_to_redis.get_nytimes_links',
-        'schedule': timedelta(minutes=15),
+        'schedule': timedelta(minutes=10),
         'args': ()
     },
 }

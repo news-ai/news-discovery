@@ -68,5 +68,6 @@ def post_to_news_processing(url):
         "url": url
     }
 
-    r = requests.get(config.NEWS_PROCESSING_URL + '/processing',
+    r = requests.post(config.NEWS_PROCESSING_URL + '/processing',
                      headers=headers, data=json.dumps(payload), verify=False)
+    return r
