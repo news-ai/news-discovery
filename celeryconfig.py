@@ -9,8 +9,13 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ENABLE_UTC = True
 CELERY_TIMEZONE = 'UTC'
 CELERYBEAT_SCHEDULE = {
+    'post-feeds-to-news-processing-every-thirty-minutes': {
+        'task': 'discovery.feeds_to_news_processing.post_articles_for_each_feed',
+        'schedule': timedelta(minutes=30),
+        'args': ()
+    },
     'save-publisher-feeds-to-redis-every-thirty-minutes': {
-        'task': 'discovery.feeds_to_api.save_all_publisher_feeds_to_redis',
+        'task': 'discovery.feeds_to_redis.save_all_publisher_feeds_to_redis',
         'schedule': timedelta(minutes=30),
         'args': ()
     },
@@ -24,9 +29,4 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(minutes=15),
         'args': ()
     },
-    'post-feeds-to-api-every-thirty-minutes': {
-        'task': 'discovery.feeds_to_api.post_articles_for_each_feed',
-        'schedule': timedelta(minutes=30),
-        'args': ()
-    }
 }
