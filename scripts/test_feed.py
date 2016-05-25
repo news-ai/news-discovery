@@ -5,9 +5,8 @@ import context
 from bs4 import BeautifulSoup
 import requests
 
+
 # test RSS feed url
-
-
 def test_rss_feed(url):
     d = feedparser.parse(url)
     for entry in d.get('entries'):
