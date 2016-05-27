@@ -1,6 +1,7 @@
 amqp==1.4.9
 aniso8601==1.1.0
 anyjson==0.3.3
+APScheduler==3.1.0
 Babel==2.2.0
 backports.ssl-match-hostname==3.5.0.1
 beautifulsoup4==4.3.2
@@ -16,6 +17,7 @@ Flask==0.10.1
 Flask-Cors==2.1.2
 Flask-RESTful==0.3.5
 flower==0.8.4
+funcsigs==1.0.2
 futures==3.0.5
 itsdangerous==0.24
 jieba==0.35
@@ -25,7 +27,6 @@ kombu==3.0.33
 lxml==3.3.5
 MarkupSafe==0.23
 -e git+https://github.com/news-ai/newspaper@95297299b0a4db17e32b4a2d67533742de0ed876#egg=newspaper-origin_python-2-head
--e git+https://github.com/news-ai/newspaper@95297299b0a4db17e32b4a2d67533742de0ed876#egg=newspaper3k-origin_python-2-head
 nltk==2.0.5
 Pillow==2.5.1
 pymongo==3.2.1
@@ -38,5 +39,6 @@ requests==2.6.0
 six==1.7.3
 tldextract==1.5.1
 tornado==4.2
+tzlocal==1.2.2
 Werkzeug==0.11.8
 wheel==0.24.0
