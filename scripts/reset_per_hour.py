@@ -9,5 +9,5 @@ def some_job():
     print call(["bash", "/home/api/restart_celery.sh"])
 
 scheduler = BlockingScheduler()
-scheduler.add_job(some_job, 'interval', minutes=1)
+scheduler.add_job(some_job, 'interval', hours=1)
 scheduler.start()
