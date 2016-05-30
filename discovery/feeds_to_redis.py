@@ -26,20 +26,22 @@ seen_collection = db.discovered
 
 
 # 15 min
-# example: url = [RSS_LINK, ARTICLE_LINK_TAG, CAN_RUN]
+# example: url = [RSS_LINK, ARTICLE_LINK_TAG, CAN_RUN, RSS_ID]
 @app.task
 def save_all_publisher_feeds_to_redis():
     token = context.get_login_token(False)
     feed_urls = []
-    res = context.get_publisher(token).json()
+    res = context.get_publisherfeeds(token).json()
     for publisher in res.get('results'):
         if len(publisher.get('tags')) > 0:
-            feed_urls.append([publisher['feed_url'], publisher['tags'], True])
+            feed_urls.append([publisher['feed_url'], publisher[
+                             'tags'], True, publisher['id']])
         else:
-            feed_urls.append([publisher['feed_url'], None, True])
+            feed_urls.append(
+                [publisher['feed_url'], None, True, publisher['id']])
 
     # add all non-feed url
-    feed_urls.append(['http://www.nytimes.com', None, False])
+    feed_urls.append(['http://www.nytimes.com', None, False, None])
 
     r.set('publisher_feeds', json.dumps(feed_urls))
     return True

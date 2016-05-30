@@ -36,26 +36,26 @@ def remove_articles_from_redis(article_urls):
 
 
 @app.task
-def post_articles_from_redis(article_urls):
+def post_articles_from_redis(article_urls, rss_id):
     if len(article_urls) > 0:
         res = None
         for article_url in article_urls:
-            res = context.post_to_news_processing(article_url)
+            res = context.post_to_news_processing(article_url, rss_id)
             if res.status_code == 500:
                 print(res.text)
+        remove_articles_from_redis.delay(article_urls)
     return True
 
 
 @app.task
-def post_batch_articles(rss_link):
+def post_batch_articles(rss_link, rss_id):
     pending_obj = r.get(rss_link)
     if pending_obj is None:
         r.set(rss_link, json.dumps({'pending_urls': []}))
         return False
     pending_urls = json.loads(pending_obj).get('pending_urls')
     if len(pending_urls) > 0:
-        post_articles_from_redis.delay(pending_urls)
-        remove_articles_from_redis.delay(pending_urls)
+        post_articles_from_redis.delay(pending_urls, rss_id)
         r.set(rss_link, json.dumps({'pending_urls': []}))
     return True
 
@@ -65,5 +65,6 @@ def post_articles_for_each_feed():
     feeds = json.loads(r.get('publisher_feeds'))
     for feed in feeds:
         rss_link = feed[0]
-        post_batch_articles.delay(rss_link)
+        rss_id = feed[3]
+        post_batch_articles.delay(rss_link, rss_id)
     return True
