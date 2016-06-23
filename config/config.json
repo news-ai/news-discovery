@@ -1,0 +1,22 @@
+{
+  "url": {
+    "base_url": "https://internal.newsai.org/api",
+    "context_base_url": "https://context.newsai.org/api",
+    "news_processing_url": "https://processing1.newsai.org"
+  },
+  "context": {
+    "username": "sonet",
+    "password": "F3PFztkHPWHU9uL[MuZx"
+  },
+  "sentry": {
+    "user": "a1470015603f469faf398e861a887f0d",
+    "password": "37fa444462f142008ba58e488679c9b4",
+    "app_id": "76018"
+  },
+  "email": {
+    "host": "smtp.zoho.com",
+    "port": 587,
+    "username": "celery@dev.newsai.org",
+    "password": "MA6qGNFyZiZoeUAT}N4v"
+  }
+}
